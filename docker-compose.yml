@@ -1,0 +1,35 @@
+# IOC Intelligence Analyzer — local orchestration
+# Usage:
+#   docker compose run --rm analyzer --ioc 203.0.113.66
+#   docker compose run --rm analyzer --bulk /data/indicators.csv -f json
+#   docker compose run --rm analyzer --demo
+services:
+  analyzer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: ioc-intelligence-analyzer:1.0.0
+    container_name: ioc-analyzer
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      # Keys are injected from the host environment / secrets store — never baked into the image.
+      VT_API_KEY: ${VT_API_KEY:-}
+      ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY:-}
+      GREYNOISE_API_KEY: ${GREYNOISE_API_KEY:-}
+      IOC_LOG_LEVEL: ${IOC_LOG_LEVEL:-INFO}
+      IOC_JSON_LOGS: ${IOC_JSON_LOGS:-false}
+      IOC_OFFLINE: ${IOC_OFFLINE:-false}
+      IOC_TIMEOUT_SECONDS: ${IOC_TIMEOUT_SECONDS:-15}
+      IOC_MAX_RETRIES: ${IOC_MAX_RETRIES:-3}
+      IOC_BACKOFF_FACTOR: ${IOC_BACKOFF_FACTOR:-0.7}
+      IOC_REPORT_DIR: /app/reports
+    volumes:
+      - ./reports:/app/reports           # report output visible on host
+      - ./examples:/data:ro              # bulk input files (read-only)
+    restart: "no"
