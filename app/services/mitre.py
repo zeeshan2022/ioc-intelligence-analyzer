@@ -48,7 +48,7 @@ _RULES: tuple[_Pattern, ...] = (
     _Pattern(re.compile(r"brute[- ]?force|password spray|credential stuffing|rdp brute", re.I),
              "Credential Access", "T1110", "Brute Force"),
     # Exfiltration ------------------------------------------------------- #
-    _Pattern(re.compile(r"exfiltrat|data theft|staging server|upload to", re.I),
+    _Pattern(re.compile(r"exfil\w*|data theft|staging server|upload to", re.I),
              "Exfiltration", "T1041", "Exfiltration Over C2 Channel"),
     # Persistence / hosting ----------------------------------------------#
     _Pattern(re.compile(r"malware host|malicious host|dropper|downloader|payload delivery|secondary stage", re.I),

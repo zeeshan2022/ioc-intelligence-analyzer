@@ -54,11 +54,13 @@ _HASH_PATTERNS: dict[IOCType, re.Pattern[str]] = {
     IOCType.SHA256: re.compile(r"^[a-fA-F0-9]{64}$"),
 }
 
-# RFC-1123 compliant hostname (labels, hyphens, TLD alpha >= 2 chars).
+# RFC-1123 compliant hostname: each label <= 63 chars, total <= 253,
+# hyphens disallowed at label edges, TLD alphabetic and >= 2 chars.
 _DOMAIN_RE = re.compile(
     r"^(?=.{1,253}$)"
-    r"([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+"
-    r"[a-zA-Z]{2,63}$"
+    r"([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+"
+    r"[a-zA-Z]{2,}"
+    r"(?![a-zA-Z0-9\-]*[a-zA-Z0-9\-]{64})$"
 )
 
 _EMAIL_RE = re.compile(
@@ -172,13 +174,15 @@ def validate_ioc(raw_value: str) -> ValidatedIOC:
     # --- URLs -------------------------------------------------------------- #
     if _looks_like_url(value):
         parsed = urlparse(value)
-        host = (parsed.hostname or "").lower()
-        if not host:
-            return ValidatedIOC(value, IOCType.URL, False, "URL has no host component")
+        # Reject dangerous/unsupported schemes *before* any host parsing so
+        # local-file vectors (file://, jar://...) fail with a clear reason.
         if parsed.scheme.lower() not in {"http", "https", "ftp"}:
             return ValidatedIOC(
                 value, IOCType.URL, False, f"unsupported URL scheme: {parsed.scheme}"
             )
+        host = (parsed.hostname or "").lower()
+        if not host:
+            return ValidatedIOC(value, IOCType.URL, False, "URL has no host component")
         # Host may itself be an IP literal.
         host_valid = _DOMAIN_RE.match(host) or _is_ipv4(host) or _is_ipv6(host)
         if not host_valid:
