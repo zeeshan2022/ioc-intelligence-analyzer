@@ -12,6 +12,8 @@ will swap the prose generator for an AI-assisted writer behind this same
 
 from __future__ import annotations
 
+import re
+
 from app.core.ioc import ValidatedIOC
 from app.core.models import (
     AnalystSummary,
@@ -32,6 +34,9 @@ def _narrate(value: object) -> str:
     text = "" if value is None else str(value)
     for ch in "<>\"'&`":
         text = text.replace(ch, "")
+    # Narrative prose must never carry executable constructs, even quoted.
+    text = re.sub(r"(?i)\bon[a-z]+=", "handler-neutralized=", text)
+    text = re.sub(r"(?i)javascript\s*:", "protocol-neutralized:", text)
     return text
 
 
