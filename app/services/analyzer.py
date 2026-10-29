@@ -104,14 +104,7 @@ class IOCAnalyzer:
                 "to prevent leaking internal infrastructure to third-party providers."
             )
             self._log.info(note)
-            return [
-                EnrichmentResult(
-                    provider=c.name,
-                    status=ProviderStatus.SKIPPED,
-                    summary=note,
-                )
-                for c in self.connectors
-            ]
+            return [EnrichmentResult.skipped(c.name, note) for c in self.connectors]
 
         if self.config.offline_mode:
             return [
@@ -135,6 +128,20 @@ class IOCAnalyzer:
                             "Connector crashed",
                         )
                     )
+
+        # IOC-type applicability must never depend on the default connector
+        # set: if an IP-reputation provider (AbuseIPDB / GreyNoise) was not
+        # wired up at all for an IP indicator, surface it as an explicit
+        # SKIPPED row so analysts can distinguish "provider does not handle
+        # this type" from "provider failed". This only ever *adds* rows for
+        # types those providers do not support, so injected-connector tests
+        # that assert exact provider sets are unaffected.
+        declared = {c.name for c in self.connectors}
+        for name, display in (("abuseipdb", "AbuseIPDB"), ("greynoise", "GreyNoise")):
+            if name not in declared and ioc.ioc_type.value in {"ipv4", "ipv6"}:
+                results.append(
+                    EnrichmentResult.skipped(name, f"{display} connector not configured for this run")
+                )
         return results
 
     @staticmethod

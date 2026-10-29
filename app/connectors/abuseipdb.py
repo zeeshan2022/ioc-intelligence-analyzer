@@ -90,7 +90,15 @@ class AbuseIPDBConnector(BaseConnector):
         country = data.get("countryCode")
         isp = data.get("isp")
         is_whitelisted = bool(data.get("isWhitelisted"))
-        is_tor = "Tor Node" in categories
+        # Tor status arrives either as an explicit flag (enterprise responses)
+        # or must be inferred from the reported categories (community v2).
+        # Normalise to a *always-present* boolean so downstream consumers never
+        # have to guess which shape the provider returned.
+        raw_tor = data.get("isTor", data.get("is_tor"))
+        if isinstance(raw_tor, bool):
+            is_tor = raw_tor
+        else:
+            is_tor = any("tor" in c.lower() for c in categories)
 
         confidence = max(0, min(100, abuse_score))
         malicious: Any = None
