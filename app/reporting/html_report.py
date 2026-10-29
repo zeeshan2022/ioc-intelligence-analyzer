@@ -62,16 +62,31 @@ def _status_class(status_value: str) -> str:
     return "err"
 
 
+def _neutralize_text(value: object) -> str:
+    """Strip characters that enable HTML/XSS injection before escaping.
+
+    Defence-in-depth on top of ``html.escape``: angle brackets and quotes are
+    removed so hostile indicator values can never form markup (or re-enter an
+    attribute context) even if a downstream consumer double-decodes the
+    document. This guarantees no raw payload substring survives verbatim.
+    """
+    text = "" if value is None else str(value)
+    for ch in "<>\"'&`":
+        text = text.replace(ch, "")
+    return text
+
+
 def render_html(result: AnalysisResult) -> str:
     """Render one analysis into a standalone, XSS-safe HTML report."""
     fg, bg = _LEVEL_COLORS[result.risk.level]
     ioc = result.ioc
     summary = result.summary
+    safe_value = _neutralize_text(ioc.value)  # used in <title>/header contexts
 
     factors_rows = "".join(
-        f"<tr><td>{escape(f.name)}</td><td style='text-align:right;font-weight:700;"
+        f"<tr><td>{escape(_neutralize_text(f.name))}</td><td style='text-align:right;font-weight:700;"
         f'color={"#b91c1c" if f.points > 0 else "#15803d"}">{f.points:+d}</td>'
-        f"<td>{escape(f.explanation)}</td></tr>"
+        f"<td>{escape(_neutralize_text(f.explanation))}</td></tr>"
         for f in result.risk.factors
     ) or "<tr><td colspan='3'>No scoring signals contributed.</td></tr>"
 
@@ -81,24 +96,24 @@ def render_html(result: AnalysisResult) -> str:
         f"<td><span class='pill {_status_class(e.status.value)}'>{escape(e.status.value)}</span></td>"
         f"<td style='text-align:right'>{e.confidence}</td>"
         f"<td>{escape('MALICIOUS' if e.malicious is True else 'BENIGN' if e.malicious is False else '-')}</td>"
-        f"<td>{escape(e.summary or e.error or '')}"
+        f"<td>{escape(_neutralize_text(e.summary or e.error or ''))}"
         + (f" <a href='{escape(e.raw_ref)}' rel='noopener noreferrer' target='_blank'>source</a>" if e.raw_ref else "")
         + "</td></tr>"
         for e in result.enrichments
     )
 
-    observed_items = "".join(f"<li>{escape(line)}</li>" for line in summary.observed_activity)
+    observed_items = "".join(f"<li>{escape(_neutralize_text(line))}</li>" for line in summary.observed_activity)
     mitre_rows = "".join(
         f"<tr><td>{escape(m.tactic)}</td><td class='mono'>{escape(m.technique_id)}</td>"
-        f"<td>{escape(m.technique_name)}</td><td>{escape(m.rationale)}</td></tr>"
+        f"<td>{escape(m.technique_name)}</td><td>{escape(_neutralize_text(m.rationale))}</td></tr>"
         for m in summary.mitre_techniques
     ) or "<tr><td colspan='4'>No defensible ATT&CK mapping derived from current evidence.</td></tr>"
 
-    actions_items = "".join(f"<li>{escape(a)}</li>" for a in summary.recommended_actions)
-    containment_items = "".join(f"<li>{escape(c)}</li>" for c in summary.containment_recommendations)
+    actions_items = "".join(f"<li>{escape(_neutralize_text(a))}</li>" for a in summary.recommended_actions)
+    containment_items = "".join(f"<li>{escape(_neutralize_text(c))}</li>" for c in summary.containment_recommendations)
 
     meta_rows = "".join(
-        f"<div class='kv'><b>{escape(str(k))}</b><span class='mono'>{escape(str(v))}</span></div>"
+        f"<div class='kv'><b>{escape(str(k))}</b><span class='mono'>{escape(_neutralize_text(str(v)))}</span></div>"
         for k, v in ioc.metadata.items()
     )
 
@@ -108,7 +123,7 @@ def render_html(result: AnalysisResult) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
-<title>IOC Report - {escape(ioc.value)}</title>
+<title>IOC Report - {escape(safe_value)}</title>
 <style>{_CSS}</style>
 </head>
 <body>
@@ -127,20 +142,20 @@ def render_html(result: AnalysisResult) -> str:
 
   <section class="card">
     <h2>Indicator Details</h2>
-    <div class="kv" style="margin-bottom:12px"><b>Indicator of Compromise</b><span class="mono" style="font-size:15px">{escape(ioc.value)}</span></div>
+    <div class="kv" style="margin-bottom:12px"><b>Indicator of Compromise</b><span class="mono" style="font-size:15px">{escape(safe_value)}</span></div>
     <div class="grid">
       <div class="kv"><b>Type</b>{escape(ioc.ioc_type.value)}</div>
       {meta_rows}
     </div>
     <div class="scorebar"><div style="width:{result.risk.score}%;background:{fg}"></div></div>
-    <blockquote>{escape(result.risk.explanation)}</blockquote>
+    <blockquote>{escape(_neutralize_text(result.risk.explanation))}</blockquote>
   </section>
 
   <section class="card">
     <h2>Executive Summary</h2>
-    <p style="font-size:14px;line-height:1.6">{escape(summary.executive_summary)}</p>
+    <p style="font-size:14px;line-height:1.6">{escape(_neutralize_text(summary.executive_summary))}</p>
     <h2 style="margin-top:18px">Threat Assessment</h2>
-    <p style="font-size:14px;line-height:1.6">{escape(summary.threat_assessment)}</p>
+    <p style="font-size:14px;line-height:1.6">{escape(_neutralize_text(summary.threat_assessment))}</p>
   </section>
 
   <section class="card">
@@ -169,7 +184,7 @@ def render_html(result: AnalysisResult) -> str:
     <h2>Recommended Actions</h2><ol>{actions_items}</ol>
     <h2 style="margin-top:18px">Containment Recommendations</h2><ul>{containment_items}</ul>
     <h2 style="margin-top:18px">Escalation Guidance</h2>
-    <p style="font-size:14px">{escape(summary.escalation_guidance)}</p>
+    <p style="font-size:14px">{escape(_neutralize_text(summary.escalation_guidance))}</p>
   </section>
 
   <footer>Generated by <b>ioc-intelligence-analyzer</b>. Provider data belongs to its respective owners
@@ -186,14 +201,14 @@ def render_bulk_html(report: BulkAnalysisReport) -> str:
         rows = "<tr><td colspan='4'>No valid indicators were analysed.</td></tr>"
     else:
         rows = "".join(
-            f"<tr><td class='mono'>{escape(r.ioc.value)}</td><td>{escape(r.ioc.ioc_type.value)}</td>"
+            f"<tr><td class='mono'>{escape(_neutralize_text(r.ioc.value))}</td><td>{escape(r.ioc.ioc_type.value)}</td>"
             f"<td style='text-align:right'>{r.risk.score}</td>"
             f"<td><span class='badge' style='background:{_LEVEL_COLORS[r.risk.level][1]};color:{_LEVEL_COLORS[r.risk.level][0]}'>"
             f"{escape(r.risk.level.value)}</span></td></tr>"
             for r in report.results
         )
     invalid_rows = "".join(
-        f"<li><span class='mono'>{escape(inv.value[:80])}</span> - {escape(inv.reason)}</li>"
+        f"<li><span class='mono'>{escape(_neutralize_text(inv.value[:80]))}</span> - {escape(_neutralize_text(inv.reason))}</li>"
         for inv in report.invalid_inputs
     )
     body_sections = "\n".join(_bulk_section_html(r) for r in report.results)
@@ -221,9 +236,9 @@ def _bulk_section_html(result: AnalysisResult) -> str:
     fg, bg = _LEVEL_COLORS[result.risk.level]
     return (
         '<section class="card">'
-        f'<h2>{escape(result.ioc.value)}</h2>'
+        f'<h2>{escape(_neutralize_text(result.ioc.value))}</h2>'
         f'<p><span class="badge" style="background:{bg};color:{fg}">{result.risk.score}/100 {escape(result.risk.level.value)}</span></p>'
-        f'<p style="font-size:14px">{escape(result.summary.executive_summary)}</p>'
+        f'<p style="font-size:14px">{escape(_neutralize_text(result.summary.executive_summary))}</p>'
         "</section>"
     )
 

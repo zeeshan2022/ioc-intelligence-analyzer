@@ -22,6 +22,8 @@ from typing import Optional
 _REDACT_PATTERNS: tuple[re.Pattern[str], ...] = (
     # Common API-key query params / headers echoed inside messages
     re.compile(r"(?i)\b(key|token|secret|authorization|api[_-]?key)\b\s*[=:]\s*\S+"),
+    # Inline password/passphrase assignments (classic credential leak in logs)
+    re.compile(r"(?i)\b(password|passwd|pwd)\b\s*[=:]\s*\S+"),
     # VirusTotal-style keys (39 chars ending in '01'/'I0'...) - generic long hex/base64 blobs
     re.compile(r"\b[A-Za-z0-9_\-]{32,}\b"),
 )
@@ -37,7 +39,8 @@ def redact(text: str) -> str:
     """
     out = text
     out = _REDACT_PATTERNS[0].sub(lambda m: f"{m.group(1)}={_REDACTED}", out)
-    out = _REDACT_PATTERNS[1].sub(_REDACTED, out)
+    out = _REDACT_PATTERNS[1].sub(lambda m: f"{m.group(1)}={_REDACTED}", out)
+    out = _REDACT_PATTERNS[2].sub(_REDACTED, out)
     return out
 
 
