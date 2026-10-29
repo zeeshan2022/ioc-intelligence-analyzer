@@ -61,7 +61,7 @@ _DOMAIN_RE = re.compile(
     r"^(?=.{1,253}$)"
     r"([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+"
     r"[a-zA-Z]{2,}"
-    r"(?![a-zA-Z0-9\-]*[a-zA-Z0-9\-]{64})$"
+    r"$"
 )
 
 #: RFC-1035/1123 limit for the whole hostname carried inside URLs.

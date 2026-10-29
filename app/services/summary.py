@@ -20,6 +20,21 @@ from app.core.models import (
     RiskAssessment,
     RiskLevel,
 )
+def _narrate(value: object) -> str:
+    """Return an IOC value safe for embedding in *narrative* prose.
+
+    Narrative sentences interpolate the indicator string; a hostile payload
+    must not smuggle markup or event-handler substrings into analyst prose, so
+    injection characters are stripped here. Evidence fields in renderers keep
+    the verbatim value via ``html.escape(payload)`` — this helper never
+    touches those slots.
+    """
+    text = "" if value is None else str(value)
+    for ch in "<>\"'&`":
+        text = text.replace(ch, "")
+    return text
+
+
 from app.services.mitre import map_techniques
 
 
@@ -64,8 +79,9 @@ def build_summary(
 
 
 def _executive(ioc: ValidatedIOC, risk: RiskAssessment, level: RiskLevel, provider_count: int) -> str:
+    narrated_value = _narrate(ioc.value)
     base = (
-        f"The indicator '{ioc.value}' ({ioc.ioc_type.value}) was analysed against "
+        f"The indicator '{narrated_value}' ({ioc.ioc_type.value}) was analysed against "
         f"{provider_count} threat-intelligence provider(s) and received a risk score of "
         f"{risk.score}/100 ({level.value.upper()})."
     )
@@ -94,11 +110,14 @@ def _threat_assessment(level: RiskLevel, usable: list[EnrichmentResult]) -> str:
     if positives:
         sentences.append(
             f"{len(positives)} provider(s) assess this indicator as malicious: "
-            + "; ".join(f"{p.provider}: {p.summary}" for p in positives[:3])
+            # Provider findings quote the indicator verbatim; narrative slots
+            # neutralise interpolated payload fragments before composition.
+            + "; ".join(f"{p.provider}: {_narrate(p.summary)}" for p in positives[:3])
         )
     if negatives and not positives:
         sentences.append(
-            "Available evidence leans benign: " + "; ".join(f"{n.provider}: {n.summary}" for n in negatives[:3])
+            "Available evidence leans benign: "
+            + "; ".join(f"{n.provider}: {_narrate(n.summary)}" for n in negatives[:3])
         )
     if not positives and not negatives:
         sentences.append("Providers returned data but no definitive verdict; findings are ambiguous.")
@@ -134,7 +153,7 @@ def _recommended_actions(level: RiskLevel, ioc: ValidatedIOC) -> list[str]:
     ]
     if level in (RiskLevel.CRITICAL, RiskLevel.HIGH):
         return [
-            f"Block '{ioc.value}' at perimeter firewall/proxy immediately pending review.",
+            f"Block '{_narrate(ioc.value)}' at perimeter firewall/proxy immediately pending review.",
             "Hunt for related infrastructure (same ASN/hosting pattern) using pivot queries.",
             "Preserve raw provider responses for evidentiary chain-of-custody.",
         ] + generic
