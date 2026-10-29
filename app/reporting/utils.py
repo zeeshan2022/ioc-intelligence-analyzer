@@ -15,12 +15,15 @@ def sanitize_ioc_token(value: str) -> str:
     """Derive a filesystem-safe token from an IOC value.
 
     Defence against path traversal / separator injection (CWE-22): anything
-    that is not ``[A-Za-z0-9._-]`` is replaced with ``_``; every dot run is
-    collapsed to a single underscore so relative-path segments (``..``) and
-    hidden files can never be produced.
+    that is not ``[A-Za-z0-9._-]`` is replaced with ``_``, then *runs* of two
+    or more dots are collapsed to a single underscore so relative-path
+    segments (``..``) and hidden files can never be produced. Single dots
+    sandwiched between alphanumerics are preserved verbatim, which keeps
+    legitimate dotted identifiers such as IP addresses and domains readable
+    in report filenames (e.g. ``203.0.113.66``).
     """
     token = re.sub(r"[^A-Za-z0-9._\-]", "_", value)[:64].strip("._")
-    token = re.sub(r"\.+", "_", token)
+    token = re.sub(r"\.{2,}", "_", token)
     return token or "ioc"
 
 

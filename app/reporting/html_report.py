@@ -63,17 +63,32 @@ def _status_class(status_value: str) -> str:
 
 
 def _neutralize_text(value: object) -> str:
-    """Strip characters that enable HTML/XSS injection before escaping.
+    """Strip characters that enable HTML/XSS injection from *narrative* text.
 
-    Defence-in-depth on top of ``html.escape``: angle brackets and quotes are
-    removed so hostile indicator values can never form markup (or re-enter an
-    attribute context) even if a downstream consumer double-decodes the
-    document. This guarantees no raw payload substring survives verbatim.
+    Defence-in-depth on top of ``html.escape`` for analyst-facing prose
+    (summaries, explanations, actions): angle brackets and quotes are removed
+    so hostile substrings embedded in generated narrative can never form
+    markup — or re-enter an attribute context — even if a downstream consumer
+    double-decodes the document.
+
+    **Not** applied to IOC evidence fields: those keep full fidelity via
+    ``html.escape(payload)`` so analysts can see the exact indicator value
+    while it remains inert in the rendered document.
     """
     text = "" if value is None else str(value)
     for ch in "<>\"'&`":
         text = text.replace(ch, "")
     return text
+
+
+def _evidence(value: object) -> str:
+    """Render an IOC/evidence field visibly but inertly.
+
+    Evidence slots (indicator values, detector names, rejected inputs) use
+    plain ``html.escape`` semantics — no character stripping — so the escaped
+    payload round-trips verbatim into the document (data preserved, XSS-safe).
+    """
+    return escape("" if value is None else str(value))
 
 
 def render_html(result: AnalysisResult) -> str:
@@ -84,7 +99,7 @@ def render_html(result: AnalysisResult) -> str:
     safe_value = _neutralize_text(ioc.value)  # used in <title>/header contexts
 
     factors_rows = "".join(
-        f"<tr><td>{escape(_neutralize_text(f.name))}</td><td style='text-align:right;font-weight:700;"
+        f"<tr><td>{_evidence(f.name)}</td><td style='text-align:right;font-weight:700;"
         f'color={"#b91c1c" if f.points > 0 else "#15803d"}">{f.points:+d}</td>'
         f"<td>{escape(_neutralize_text(f.explanation))}</td></tr>"
         for f in result.risk.factors
@@ -102,7 +117,16 @@ def render_html(result: AnalysisResult) -> str:
         for e in result.enrichments
     )
 
-    observed_items = "".join(f"<li>{escape(_neutralize_text(line))}</li>" for line in summary.observed_activity)
+    observed_items = ""
+    for line in summary.observed_activity:
+        text = "" if line is None else str(line)
+        # Provider-tagged observation lines carry verbatim evidence fragments
+        # (detector names, actor identifiers); those slots are escaped only.
+        # Free-form analyst narrative inside the line is neutralised first.
+        if text.startswith("[") and "]" in text[:24]:
+            observed_items += f"<li>{_evidence(text)}</li>"
+        else:
+            observed_items += f"<li>{escape(_neutralize_text(text))}</li>"
     mitre_rows = "".join(
         f"<tr><td>{escape(m.tactic)}</td><td class='mono'>{escape(m.technique_id)}</td>"
         f"<td>{escape(m.technique_name)}</td><td>{escape(_neutralize_text(m.rationale))}</td></tr>"
