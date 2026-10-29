@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
+<title>IOC Report - 203.0.113.66</title>
+<style>
+:root{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f8fafc;}
+*{box-sizing:border-box}body{margin:0;font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;color:var(--ink);background:var(--bg);}
+.container{max-width:1080px;margin:0 auto;padding:24px;}
+header.report{background:#0f172a;color:#fff;border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+header.report h1{font-size:20px;margin:0;} .brand small{color:#94a3b8;display:block;margin-top:4px;}
+.badge{border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;letter-spacing:.4px;text-transform:uppercase;}
+.meta{color:#cbd5e1;font-size:12px;margin-top:6px;}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:16px;box-shadow:0 1px 2px rgb(15 23 42 / 5%);}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:#334155;margin:0 0 12px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.kv{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;}
+.kv b{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all;}
+.scorebar{height:14px;border-radius:7px;background:#e2e8f0;overflow:hidden;margin:10px 0 4px;}
+.scorebar>div{height:100%;border-radius:7px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--line);padding:8px;}
+td{border-bottom:1px solid var(--line);padding:9px 8px;vertical-align:top;}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;}
+.ok{background:#dcfce7;color:#166534}.warn{background:#fef3c7;color:#92400e}.err{background:#fee2e2;color:#991b1b}.skip{background:#e2e8f0;color:#475569}
+ul,ol{margin:6px 0 0 18px;padding:0;}li{margin:5px 0;font-size:14px;}
+blockquote{margin:12px 0 0;padding:12px 14px;background:#f1f5f9;border-left:4px solid #334155;border-radius:0 8px 8px 0;font-size:13px;color:#334155;}
+footer{color:var(--muted);font-size:12px;margin:22px 4px;text-align:center;}
+a{color:#1d4ed8;text-decoration:none}a:hover{text-decoration:underline}
+@media print{body{background:#fff}.card{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="report">
+    <div class="brand">
+      <h1>&#128737; IOC Intelligence Analyzer</h1>
+      <small>Analyst Threat Assessment Report &middot; v1.0.0</small>
+      <div class="meta">ID 2639f322-4045-4e65-ad4c-1507fe102ae7 &middot; Generated 2026-10-29T07:11:41+00:00 UTC</div>
+    </div>
+    <div style="text-align:right">
+      <span class="badge" style="background:#fee2e2;color:#b91c1c;border:1px solid #b91c1c">critical</span>
+      <div style="font-size:34px;font-weight:800;color:#b91c1c;margin-top:6px">100<span style="font-size:14px;color:#94a3b8">/100</span></div>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Indicator Details</h2>
+    <div class="kv" style="margin-bottom:12px"><b>Indicator of Compromise</b><span class="mono" style="font-size:15px">203.0.113.66</span></div>
+    <div class="grid">
+      <div class="kv"><b>Type</b>ipv4</div>
+      <div class='kv'><b>version</b><span class='mono'>4</span></div><div class='kv'><b>is_private</b><span class='mono'>True</span></div><div class='kv'><b>is_reserved</b><span class='mono'>False</span></div><div class='kv'><b>is_loopback</b><span class='mono'>False</span></div><div class='kv'><b>is_multicast</b><span class='mono'>False</span></div><div class='kv'><b>is_global</b><span class='mono'>False</span></div>
+    </div>
+    <div class="scorebar"><div style="width:100%;background:#b91c1c"></div></div>
+    <blockquote>Final score 100/100 =&gt; CRITICAL derived from 6 positive signal(s): 14 engine(s) flagged 203.0.113.66 as malicious (3 additional suspicious) [+30]; Confidence 95% across 214 abuse report(s) [+25]; Provider data associates this indicator with botnet activity [+20]; Indicator linked to malware hosting, staging or delivery [+15]; GreyNoise classifies source as malicious (demo-botnet-scanner) [+20]; 3 independent providers returned malicious verdicts [+10]</blockquote>
+  </section>
+
+  <section class="card">
+    <h2>Executive Summary</h2>
+    <p style="font-size:14px;line-height:1.6">The indicator &#x27;203.0.113.66&#x27; (ipv4) was analysed against 3 threat-intelligence provider(s) and received a risk score of 100/100 (CRITICAL). Multiple independent sources corroborate malicious activity; treat this as an active threat until disproven and initiate incident-response procedures.</p>
+    <h2 style="margin-top:18px">Threat Assessment</h2>
+    <p style="font-size:14px;line-height:1.6">3 provider(s) assess this indicator as malicious: virustotal: 14/72 engines flagged as malicious; 3 suspicious; labels: Trojan.Win32, Generic.Malware.AI, Heuristic; abuseipdb: Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force; greynoise: Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit Aggregated confidence is sufficient to justify proactive blocking while investigation proceeds.</p>
+  </section>
+
+  <section class="card">
+    <h2>Risk Score Breakdown</h2>
+    <table><thead><tr><th>Factor</th><th style="text-align:right">Points</th><th>Evidence</th></tr></thead>
+    <tbody><tr><td>VirusTotal detections</td><td style='text-align:right;font-weight:700;color=#b91c1c">+30</td><td>14 engine(s) flagged 203.0.113.66 as malicious (3 additional suspicious)</td></tr><tr><td>AbuseIPDB abuse confidence</td><td style='text-align:right;font-weight:700;color=#b91c1c">+25</td><td>Confidence 95% across 214 abuse report(s)</td></tr><tr><td>Known botnet infrastructure</td><td style='text-align:right;font-weight:700;color=#b91c1c">+20</td><td>Provider data associates this indicator with botnet activity</td></tr><tr><td>Malware hosting / delivery</td><td style='text-align:right;font-weight:700;color=#b91c1c">+15</td><td>Indicator linked to malware hosting, staging or delivery</td></tr><tr><td>GreyNoise malicious classification</td><td style='text-align:right;font-weight:700;color=#b91c1c">+20</td><td>GreyNoise classifies source as malicious (demo-botnet-scanner)</td></tr><tr><td>Multi-provider corroboration</td><td style='text-align:right;font-weight:700;color=#b91c1c">+10</td><td>3 independent providers returned malicious verdicts</td></tr></tbody></table>
+  </section>
+
+  <section class="card">
+    <h2>Provider Reputation Data</h2>
+    <table><thead><tr><th>Provider</th><th>Status</th><th style="text-align:right">Confidence</th><th>Verdict</th><th>Finding</th></tr></thead>
+    <tbody><tr><td><b>virustotal</b></td><td><span class='pill ok'>ok</span></td><td style='text-align:right'>68</td><td>MALICIOUS</td><td>14/72 engines flagged as malicious; 3 suspicious; labels: Trojan.Win32, Generic.Malware.AI, Heuristic <a href='https://www.virustotal.com/gui/demo' rel='noopener noreferrer' target='_blank'>source</a></td></tr><tr><td><b>abuseipdb</b></td><td><span class='pill ok'>ok</span></td><td style='text-align:right'>95</td><td>MALICIOUS</td><td>Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force <a href='https://www.abuseipdb.com/check/demo' rel='noopener noreferrer' target='_blank'>source</a></td></tr><tr><td><b>greynoise</b></td><td><span class='pill ok'>ok</span></td><td style='text-align:right'>80</td><td>MALICIOUS</td><td>Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit <a href='https://www.greynoise.io/viz/address/demo' rel='noopener noreferrer' target='_blank'>source</a></td></tr></tbody></table>
+  </section>
+
+  <section class="card">
+    <h2>Observed Activity</h2><ul><li>[virustotal] 14/72 engines flagged as malicious; 3 suspicious; labels: Trojan.Win32, Generic.Malware.AI, Heuristic</li><li>[virustotal] Infrastructure context: country=NL, hosting=DEMO-NETWORK-64500 (synthetic)</li><li>[abuseipdb] Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force</li><li>[abuseipdb] Infrastructure context: country=NL, hosting=Demo Hosting B.V.</li><li>[abuseipdb] Observed window: first=unknown, last=2026-10-28T03:11:52Z</li><li>[greynoise] Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit</li><li>[greynoise] Infrastructure context: country=Netherlands, hosting=Demo Hosting B.V.</li><li>[greynoise] Observed window: first=2026-09-14, last=2026-10-28</li></ul>
+  </section>
+
+  <section class="card">
+    <h2>MITRE ATT&amp;CK Mapping</h2>
+    <table><thead><tr><th>Tactic</th><th>ID</th><th>Technique</th><th>Rationale</th></tr></thead>
+    <tbody><tr><td>Command and Control</td><td class='mono'>T1071</td><td>Application Layer Protocol</td><td>abuseipdb evidence matched &#x27;botnet|c2|command[- ]and[- ]control|cobalt\s?strike|meterpreter|beacon&#x27; on: Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force | Botnet | SSH | Brute Force | Botnet</td></tr><tr><td>Initial Access</td><td class='mono'>T1190</td><td>Exploit Public-Facing Application</td><td>abuseipdb evidence matched &#x27;exploit|vulnerab|payload|shellshock|log4j|rce&#x27; on: Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force | Botnet | SSH | Brute Force | Botnet</td></tr><tr><td>Credential Access</td><td class='mono'>T1110</td><td>Brute Force</td><td>abuseipdb evidence matched &#x27;brute[- ]?force|password spray|credential stuffing|rdp brute&#x27; on: Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force | Botnet | SSH | Brute Force | Botnet</td></tr><tr><td>Command and Control</td><td class='mono'>T1090</td><td>Proxy</td><td>greynoise evidence matched &#x27;tor|onion|i2p&#x27; on: Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit | scanner | exploit | demo-botnet-scanner | malicious</td></tr><tr><td>Discovery</td><td class='mono'>T1595</td><td>Active Scanning</td><td>greynoise evidence matched &#x27;scanner|scanning|probe|masscan|zmap&#x27; on: Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit | scanner | exploit | demo-botnet-scanner | malicious</td></tr></tbody></table>
+  </section>
+
+  <section class="card">
+    <h2>Recommended Actions</h2><ol><li>Block &#x27;203.0.113.66&#x27; at perimeter firewall/proxy immediately pending review.</li><li>Hunt for related infrastructure (same ASN/hosting pattern) using pivot queries.</li><li>Preserve raw provider responses for evidentiary chain-of-custody.</li><li>Correlate the indicator with SIEM telemetry (proxy, DNS, firewall, EDR) for the past 30 days.</li><li>Record the analysis outcome in the case management system for auditability.</li></ol>
+    <h2 style="margin-top:18px">Containment Recommendations</h2><ul><li>Deny all inbound/outbound traffic involving this host address on affected segments.</li><li>Isolate potentially compromised endpoints that communicated with the indicator.</li><li>Force credential resets for accounts that authenticated from/to this indicator.</li></ul>
+    <h2 style="margin-top:18px">Escalation Guidance</h2>
+    <p style="font-size:14px">Escalate to Incident Response lead within 1 hour; notify CISO on-call if production systems have confirmed communication with this indicator.</p>
+  </section>
+
+  <footer>Generated by <b>ioc-intelligence-analyzer</b>. Provider data belongs to its respective owners
+  (VirusTotal, AbuseIPDB, GreyNoise). Validate against internal telemetry before enforcement.</footer>
+</div>
+</body>
+</html>

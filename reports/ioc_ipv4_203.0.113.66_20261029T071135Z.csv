@@ -1,0 +1,12 @@
+analysis_id,generated_at,ioc_value,ioc_type,risk_score,risk_level,verdict,providers_ok,providers_failed,mitre_techniques,executive_summary,escalation_guidance
+57eaf1af-61cb-4e42-a298-99da65cbf431,2026-10-29T07:11:35+00:00,203.0.113.66,ipv4,100,critical,MALICIOUS,3,0,"T1071, T1190, T1110, T1090, T1595",The indicator '203.0.113.66' (ipv4) was analysed against 3 threat-intelligence provider(s) and received a risk score of 100/100 (CRITICAL). Multiple independent sources corroborate malicious activity; treat this as an active threat until disproven and initiate incident-response procedures.,Escalate to Incident Response lead within 1 hour; notify CISO on-call if production systems have confirmed communication with this indicator.
+8c912df3-3ced-4316-bc9e-a5d76f203eee,2026-10-29T07:11:35+00:00,example.org,domain,0,informational,BENIGN,1,0,,The indicator 'example.org' (domain) was analysed against 1 threat-intelligence provider(s) and received a risk score of 0/100 (INFORMATIONAL). No significant threat signal was found. Absence of detections does not certify the indicator as benign.,Retain for trend analysis; no escalation required unless new evidence emerges.
+
+# --- provider detail ---
+analysis_id,ioc_value,provider,status,confidence,malicious,summary,raw_ref,error
+57eaf1af-61cb-4e42-a298-99da65cbf431,203.0.113.66,virustotal,ok,68,True,"14/72 engines flagged as malicious; 3 suspicious; labels: Trojan.Win32, Generic.Malware.AI, Heuristic",https://www.virustotal.com/gui/demo,
+57eaf1af-61cb-4e42-a298-99da65cbf431,203.0.113.66,abuseipdb,ok,95,True,"Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force",https://www.abuseipdb.com/check/demo,
+57eaf1af-61cb-4e42-a298-99da65cbf431,203.0.113.66,greynoise,ok,80,True,"Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit",https://www.greynoise.io/viz/address/demo,
+8c912df3-3ced-4316-bc9e-a5d76f203eee,example.org,virustotal,ok,0,False,0/72 engines flagged as malicious,,
+8c912df3-3ced-4316-bc9e-a5d76f203eee,example.org,abuseipdb,skipped,0,,AbuseIPDB does not support 'domain' indicators,,
+8c912df3-3ced-4316-bc9e-a5d76f203eee,example.org,greynoise,skipped,0,,GreyNoise does not support 'domain' indicators,,
