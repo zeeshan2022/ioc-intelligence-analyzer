@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import csv
 import io
+import ipaddress
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Iterable, Optional
@@ -28,6 +29,17 @@ from app.core.models import (
 )
 from app.services.scoring import score_enrichments
 from app.services.summary import build_summary
+
+#: RFC-5737 documentation / TEST-NET ranges. Python's ``ipaddress`` flags some
+#: of these ``is_private``/``is_reserved``, but they are the canonical public
+#: *test* blocks that providers answer for, so the privacy gate must let them
+#: through and keep their analyzer path identical to normal public lookups.
+_TEST_NET_RANGES = (
+    ipaddress.ip_network("192.0.2.0/24"),
+    ipaddress.ip_network("198.51.100.0/24"),
+    ipaddress.ip_network("203.0.113.0/24"),
+    ipaddress.ip_network("2001:db8::/32"),
+)
 
 
 class IOCAnalyzer:
@@ -159,19 +171,33 @@ class IOCAnalyzer:
 
     @staticmethod
     def _is_internal(ioc: ValidatedIOC) -> bool:
-        """Privacy gate: only *truly internal* addresses are withheld.
+        """Privacy gate: which addresses must never leave the machine.
 
-        RFC1918, loopback and link-local ranges must never leave the building.
-        Documentation / TEST-NET ranges (e.g. ``203.0.113.0/24``) are flagged
-        ``is_reserved`` by :mod:`ipaddress` but are standard *public* test
-        blocks that providers happily answer for; short-circuiting them here
-        would make reserved-IP paths return a different provider structure
-        than normal public paths. Analysts can still force local-only runs via
-        ``--offline`` / ``IOC_OFFLINE=true``, which skips every provider.
+        Withheld from every provider lookup ("private/reserved"): RFC1918,
+        loopback and link-local ranges. IANA-reserved blocks (``240.0.0.0/4``)
+        are withheld as well because no public provider can answer for them --
+        but they still receive the *identical* three-provider result structure
+        as normal public paths (see :meth:`_skipped_enrichments`), satisfying
+        the provider-consistency contract.
+
+        Documentation / TEST-NET ranges (e.g. ``203.0.113.0/24``, which Python
+        3.13+ flags ``is_private``) are deliberately *not* withheld: they are
+        standard public test blocks that providers happily answer for, and
+        short-circuiting them would make reserved-IP paths diverge from normal
+        public paths. Analysts can force local-only runs via ``--offline`` /
+        ``IOC_OFFLINE=true``, which skips every provider.
         """
         meta = ioc.metadata or {}
         if ioc.ioc_type.value in {"ipv4", "ipv6"}:
-            return bool(meta.get("is_private") or meta.get("is_loopback") or meta.get("is_link_local"))
+            addr = ipaddress.ip_address(ioc.value)
+            if any(addr in network for network in _TEST_NET_RANGES):
+                return False
+            return bool(
+                meta.get("is_private")
+                or meta.get("is_loopback")
+                or meta.get("is_link_local")
+                or meta.get("is_reserved")
+            )
         return False
 
 
