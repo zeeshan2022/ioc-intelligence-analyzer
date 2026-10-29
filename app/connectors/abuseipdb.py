@@ -135,6 +135,14 @@ class AbuseIPDBConnector(BaseConnector):
             confidence=confidence,
             malicious=malicious,
             summary="; ".join(summary_bits),
-            details={k: v for k, v in details.items() if v not in (None, "", [], False)},
+            # Normalisation contract: never drop keys merely because their
+            # value is falsy. Booleans (is_whitelisted / is_tor) and numeric
+            # scores are meaningful *as* False/0, so they always survive; only
+            # genuinely absent data (None / "" / []) is pruned.
+            details={
+                k: v
+                for k, v in details.items()
+                if not (v is None or v == "" or v == [])
+            },
             raw_ref=f"https://www.abuseipdb.com/check/{ioc.value}",
         )

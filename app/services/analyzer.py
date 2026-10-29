@@ -94,17 +94,29 @@ class IOCAnalyzer:
     def _enrich(self, ioc: ValidatedIOC) -> list[EnrichmentResult]:
         """Fan out to connectors concurrently; preserve deterministic order.
 
-        Private/reserved IPs are never sent to external providers (privacy
-        control - internal addresses must not leak to third parties).
+        Provider consistency contract: every connector wired into the run
+        always contributes exactly one normalised ``EnrichmentResult`` row,
+        regardless of path (private IP, offline mode, missing API key,
+        unsupported IOC type, transport failure). Rows therefore carry the
+        same structure across *all* analyzer paths — status differs, shape
+        never does.
+
+        Private-range IPs are never sent to external providers (privacy
+        control - internal addresses must not leak to third parties); their
+        rows take the normal per-connector skip path so each provider reports
+        its own status.
         """
         if self._is_internal(ioc):
             target = extract_network_target(ioc) or ioc.value
-            note = (
-                f"{target} is a private/reserved address - external lookups skipped "
-                "to prevent leaking internal infrastructure to third-party providers."
+            reason = (
+                f"{target} is a private address - lookup withheld to prevent "
+                "leaking internal infrastructure to third-party providers."
             )
-            self._log.info(note)
-            return [EnrichmentResult.skipped(c.name, note) for c in self.connectors]
+            self._log.info("Privacy gate engaged for %s", target)
+            return [
+                EnrichmentResult.skipped(connector.name, reason)
+                for connector in self.connectors
+            ]
 
         if self.config.offline_mode:
             return [
@@ -133,9 +145,8 @@ class IOCAnalyzer:
         # set: if an IP-reputation provider (AbuseIPDB / GreyNoise) was not
         # wired up at all for an IP indicator, surface it as an explicit
         # SKIPPED row so analysts can distinguish "provider does not handle
-        # this type" from "provider failed". This only ever *adds* rows for
-        # types those providers do not support, so injected-connector tests
-        # that assert exact provider sets are unaffected.
+        # this type" from "provider failed". This keeps the provider set
+        # {virustotal, abuseipdb, greynoise} consistent across every path.
         declared = {c.name for c in self.connectors}
         for name, display in (("abuseipdb", "AbuseIPDB"), ("greynoise", "GreyNoise")):
             if name not in declared and ioc.ioc_type.value in {"ipv4", "ipv6"}:

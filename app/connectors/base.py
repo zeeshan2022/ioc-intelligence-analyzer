@@ -198,3 +198,33 @@ class BaseConnector(ABC):
     def _lookup(self, ioc: ValidatedIOC) -> EnrichmentResult:
         """Fetch and normalise provider intelligence for a validated IOC."""
         raise NotImplementedError
+
+    # ------------------------------------------------------------------ #
+    # Provider-consistency normalisation (no network I/O)
+    # ------------------------------------------------------------------ #
+    def normalise_offline(self, ioc: ValidatedIOC, reason: Optional[str] = None) -> EnrichmentResult:
+        """Return this provider's *data-shaped* row for a no-lookup path.
+
+        Used by the analyzer whenever a lookup cannot or must not hit the
+        network (private-address privacy gate, offline mode, or the
+        provider-completeness pass filling in an IP-reputation provider that
+        was never wired up). Every provider always contributes one row with
+        identical structure across all paths; only ``status``/``summary``
+        differ. AbuseIPDB/GreyNoise have no Release-1 coverage for non-IP
+        types, so those rows are reported as NO_DATA rather than errors —
+        "provider has nothing to say" is data, not failure.
+        """
+        if ioc.ioc_type not in self.supported_types:
+            return EnrichmentResult(
+                provider=self.name,
+                status=ProviderStatus.NO_DATA,
+                summary=(
+                    f"{self.display_name} has no reputation record for "
+                    f"'{ioc.ioc_type.value}' indicators"
+                ),
+            )
+        if reason is None:
+            reason = f"{self.display_name} lookup not attempted for this indicator"
+        return EnrichmentResult.skipped(self.name, reason)
+
+

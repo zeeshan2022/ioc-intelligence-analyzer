@@ -34,6 +34,20 @@ from dataclasses import dataclass
 from app.core.models import EnrichmentResult, RiskAssessment, RiskLevel, ScoreFactor, score_to_level
 
 
+def _narrate(value: object) -> str:
+    """IOC value rendered safe for *narrative* interpolation.
+
+    Scoring explanations embed the indicator string into prose; injection
+    characters are stripped so hostile payloads cannot appear inside analyst
+    sentences even after escaping. Evidence fields in renderers keep the
+    verbatim value untouched.
+    """
+    text = "" if value is None else str(value)
+    for ch in "<>\"'&`":
+        text = text.replace(ch, "")
+    return text
+
+
 @dataclass(frozen=True)
 class ScoringRule:
     """One additive rule applied to normalised enrichment results."""
@@ -95,7 +109,7 @@ def score_enrichments(ioc_value: str, ioc_type: str, results: list[EnrichmentRes
             add(
                 "VirusTotal detections",
                 points,
-                f"{malicious} engine(s) flagged {ioc_value} as malicious"
+                f"{malicious} engine(s) flagged {_narrate(ioc_value)} as malicious"
                 + (f" ({suspicious} additional suspicious)" if suspicious else ""),
             )
         elif suspicious >= 2:
