@@ -2,8 +2,8 @@
 # ioc-intelligence-analyzer - runtime + development dependencies (pinned)
 # ---------------------------------------------------------------------------
 # Runtime
-requests==2.32.4        # HTTP client used by all threat-intel connectors
-python-dotenv==1.1.1    # Loads .env for local development (secrets never committed)
+requests==2.33.0        # HTTP client used by all threat-intel connectors (CVE-2026-25645 patched)
+python-dotenv==1.2.2    # Loads .env for local development (secrets never committed; CVE-2026-28684 patched)
 rich==14.0.0            # Console tables / colour output for the CLI
 
 # Templating (available for custom report templates; core HTML renderer uses

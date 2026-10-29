@@ -1,0 +1,77 @@
+{
+  "schema": "ioc-intelligence-analyzer/report/v1",
+  "generated_at": "2026-10-29T00:00:00+00:00",
+  "tool_version": "1.0.0",
+  "indicator": {
+    "value": "203.0.113.66",
+    "type": "ipv4",
+    "valid": true
+  },
+  "assumptions": [
+    "Documentation sample: representative shape produced by `python main.py --ioc 203.0.113.66 --demo --format json`. Live output includes real provider fields."
+  ],
+  "enrichments": [
+    {
+      "provider": "virustotal",
+      "status": "OK",
+      "confidence": 78,
+      "details": {
+        "malicious": 12,
+        "suspicious": 3,
+        "harmless": 51,
+        "undetected": 14,
+        "last_seen": "2026-10-21"
+      }
+    },
+    {
+      "provider": "abuseipdb",
+      "status": "OK",
+      "confidence": 91,
+      "details": {
+        "abuse_confidence_score": 91,
+        "total_reports": 214,
+        "num_distinct_users": 37,
+        "is_tor": false,
+        "is_proxy": false,
+        "is_datacenter": true,
+        "country_code": "NL"
+      }
+    },
+    {
+      "provider": "greynoise",
+      "status": "OK",
+      "confidence": 65,
+      "details": {
+        "classification": "malicious",
+        "botnet": "mirai",
+        "name": "Mirai scan campaign",
+        "actor": "unknown-actor",
+        "seen_days": 28
+      }
+    }
+  ],
+  "risk": {
+    "score": 84,
+    "level": "CRITICAL",
+    "factors": [
+      {"name": "VirusTotal detections (malicious)", "points": 30, "rationale": "12/80 engines flag this address as malicious."},
+      {"name": "AbuseIPDB confidence", "points": 25, "rationale": "91% abuse confidence from 214 reports by 37 distinct users."},
+      {"name": "GreyNoise botnet activity", "points": 20, "rationale": "Classified malicious; associated with 'mirai' botnet scanning."},
+      {"name": "Cross-provider corroboration", "points": 9, "rationale": "Two or more independent providers agree on malicious verdict."}
+    ]
+  },
+  "mitre_attack": [
+    {"tactic": "Reconnaissance", "technique_id": "T1595", "technique": "Active Scanning", "rationale": "GreyNoise classifies sustained unsolicited scanning from this source."},
+    {"tactic": "Command And Control", "technique_id": "T1071", "technique": "Application Layer Protocol", "rationale": "Botnet association indicates potential C2 infrastructure."}
+  ],
+  "summary": {
+    "executive": "Indicator 203.0.113.66 assessed CRITICAL (score 84/100). Three independent providers corroborate malicious activity consistent with Mirai-family scanning infrastructure.",
+    "threat_assessment": "High-confidence hostile host: VT consensus (12 malicious), AbuseIPDB community reports (214), GreyNoise botnet attribution (mirai). Datacenter hosting reduces likelihood of a compromised-home false positive.",
+    "recommended_actions": [
+      "Block inbound traffic from this address at the perimeter for 30 days.",
+      "Hunt for outbound connections to this IP in the last 14 days.",
+      "Pivot on associated artefacts: port 23/2323 telnet scan signatures."
+    ],
+    "escalation_guidance": "If outbound hits are found, escalate to IR under T1595/T1071 hypotheses; attach this report to the case record."
+  }
+}
