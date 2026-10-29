@@ -202,10 +202,13 @@ def validate_ioc(raw_value: str) -> ValidatedIOC:
 
     # --- Bare domains ------------------------------------------------------- #
     if _DOMAIN_RE.match(value.lower()):
-        try:
-            value.encode("idna")
-        except UnicodeError:
-            pass  # Allow punycode-style / long labels; regex already constrains shape.
+        # RFC-1035: a hostname must carry at least two labels. A single label
+        # ("no_tld", "localhost") is a resolvable name on private networks but
+        # never a public IOC, so it is rejected with an explicit reason.
+        if "." not in value:
+            return ValidatedIOC(
+                value, IOCType.DOMAIN, False, "domain lacks a top-level domain (single label)"
+            )
         return ValidatedIOC(
             value.lower(),
             IOCType.DOMAIN,

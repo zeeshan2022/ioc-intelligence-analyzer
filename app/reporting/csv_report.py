@@ -43,11 +43,16 @@ _DETAIL_FIELDS = [
 
 
 def _neutralize(value: object) -> str:
-    """Escape spreadsheet formula-injection vectors in a CSV cell."""
+    """Escape spreadsheet formula-injection vectors in a CSV cell.
+
+    Order matters: the leading-character check runs *before* CR/LF flattening
+    so cells that begin with a control character (e.g. ``\\r@SUM(1+1)``) are
+    still apostrophe-prefixed rather than silently converted to a benign look.
+    """
     text = "" if value is None else str(value)
     if text[:1] in {"=", "+", "-", "@", "\t", "\r"}:
         text = "'" + text
-    return text.replace("\n", " ").replace("\r", " ")
+    return text.replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
 
 
 def summarize_row(result: AnalysisResult) -> dict[str, str]:
@@ -80,8 +85,15 @@ def summarize_row(result: AnalysisResult) -> dict[str, str]:
     }
 
 
-def render_csv(report: BulkAnalysisReport) -> str:
-    """Render the summary CSV for a bulk report (also valid for single runs)."""
+def render_csv(report: BulkAnalysisReport | AnalysisResult) -> str:
+    """Render the summary CSV.
+
+    Accepts either a :class:`BulkAnalysisReport` or a single
+    :class:`AnalysisResult` (wrapped internally) so every delivery layer can
+    call one entry point without constructing throwaway containers.
+    """
+    if isinstance(report, AnalysisResult):
+        report = BulkAnalysisReport(results=[report])
     buf = io.StringIO()
     writer = csv.DictWriter(buf, fieldnames=_SUMMARY_FIELDS, lineterminator="\n")
     writer.writeheader()
