@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# ioc-intelligence-analyzer - runtime + development dependencies (pinned)
+# ---------------------------------------------------------------------------
+# Runtime
+requests==2.32.4        # HTTP client used by all threat-intel connectors
+python-dotenv==1.1.1    # Loads .env for local development (secrets never committed)
+rich==14.0.0            # Console tables / colour output for the CLI
+
+# Templating (available for custom report templates; core HTML renderer uses
+# stdlib html.escape and does not require Jinja at runtime)
+Jinja2==3.1.6
+
+# Development / testing
+pytest==9.2.0
+pytest-cov==7.1.0
+
+# Security scanning (used by CI and `make security`)
+bandit==1.8.3
+safety==3.8.1

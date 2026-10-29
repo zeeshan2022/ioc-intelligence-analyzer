@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ioc-intelligence-analyzer"
+version = "1.0.0"
+description = "Threat-intelligence aggregation platform: validate IOCs, enrich from VirusTotal/AbuseIPDB/GreyNoise, score risk and generate analyst reports (JSON/HTML/Markdown/CSV)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "IOC Intelligence Analyzer Maintainers" }]
+keywords = [
+    "threat-intelligence",
+    "ioc",
+    "security-automation",
+    "incident-response",
+    "virustotal",
+    "abuseipdb",
+    "greynoise",
+    "mitre-attack",
+    "soc",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+]
+dependencies = [
+    "requests==2.32.4",
+    "python-dotenv==1.1.1",
+    "rich==14.0.0",
+    "Jinja2==3.1.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.2.0",
+    "pytest-cov==7.1.0",
+    "bandit==1.8.3",
+    "safety==3.8.1",
+]
+
+[project.scripts]
+ioc-analyzer = "main:main"
+
+[project.urls]
+Homepage = "https://github.com/securitymonkey/ioc-intelligence-analyzer"
+Documentation = "https://github.com/securitymonkey/ioc-intelligence-analyzer/tree/main/docs"
+Repository = "https://github.com/securitymonkey/ioc-intelligence-analyzer"
+Issues = "https://github.com/securitymonkey/ioc-intelligence-analyzer/issues"
+Changelog = "https://github.com/securitymonkey/ioc-intelligence-analyzer/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+packages = [
+    "app",
+    "app.core",
+    "app.connectors",
+    "app.services",
+    "app.reporting",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=app --cov=main --cov-report=term-missing --cov-report=xml"
+markers = [
+    "unit: fast isolated unit tests (no network)",
+    "integration: end-to-end pipeline tests using mocked HTTP only",
+    "security: tests validating security controls (XSS, CSV injection, privacy)",
+]
+filterwarnings = ["error::DeprecationWarning:app.*"]
+
+[tool.coverage.run]
+source = ["app", "main"]
+branch = true
+omit = ["tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+skip_covered = false
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".git", "reports", "build", "dist"]
+severity = "medium"
+confidence = "medium"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
