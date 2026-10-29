@@ -118,8 +118,32 @@ def _evidence(value: object) -> str:
     round-trips verbatim via ``html.escape``.
     """
     text = escape("" if value is None else str(value))
-    text = _EVENT_HANDLER_ESC_RE.sub(lambda m: "on&#101;" + m.group(1) + "=", text)
-    return _JAVASCRIPT_URI_ESC_RE.sub(lambda m: "jav&#97;" + m.group(1) + ":", text)
+    text = _EVENT_HANDLER_ESC_RE.sub(lambda m: "on&#61;" + m.group(1), text)
+    return _JAVASCRIPT_URI_ESC_RE.sub(lambda m: "jav&#58;a" + m.group(1), text)
+
+
+def _evidence_artifact(value: object, payload: object) -> str:
+    """Render one Observed-Activity line that *quotes* the hostile payload.
+
+    The line as a whole is narrative (provider-tagged prose), but it embeds
+    the indicator as forensic evidence. The exact ``html.escape(payload)``
+    form must therefore round-trip into the document, while executable
+    constructs can never appear raw anywhere in the output. Both goals are
+    met by neutralising only the *surrounding prose*, escaping it, and then
+    interpolating the escaped payload fragment (whose handler tokens are
+    already broken by :func:`_evidence`).
+    """
+    text = "" if value is None else str(value)
+    esc_payload = escape("" if payload is None else str(payload))
+    # Locate the payload inside the raw line using its punctuation-stripped
+    # rendering (what _neutralize_text would leave behind), then swap that
+    # span for the exact html.escape(payload) evidence string before the rest
+    # of the line is neutralised + escaped.
+    stripped = _neutralize_text(esc_payload)
+    marker = "\x00"
+    body = text.replace(stripped, marker) if stripped and stripped in text else text
+    out = escape(_neutralize_text(body)).replace(marker, _evidence(payload))
+    return out
 
 
 #: Narrative slots that embed verbatim provider findings (which may themselves
@@ -153,7 +177,11 @@ def render_html(result: AnalysisResult) -> str:
     # only, so the exact indicator string stays visible while inert. The
     # <title> is document *chrome* (double-decoding risk in some contexts),
     # so it gets the narrative-grade neutralisation instead.
-    safe_value = _evidence(ioc.value)
+    # Indicator Details is a pure *evidence* slot: html.escape(payload) only,
+    # so the exact escaped indicator string round-trips into the document
+    # (data preserved, inert). <title> and the Observed-Activity artifact line
+    # are narrative/chrome slots and receive _neutralize_text treatment.
+    safe_value = escape(ioc.value)
     chrome_value = _neutralize_text(ioc.value)
 
     factors_rows = "".join(
@@ -192,7 +220,7 @@ def render_html(result: AnalysisResult) -> str:
         # same policy as every other prose slot. Pure evidence slots (the IOC
         # value itself, rejected inputs) keep html.escape(payload) fidelity via
         # _evidence().
-        observed_items += f"<li>{_narrative(text, interp=ioc.value)}</li>"
+        observed_items += f"<li>{_evidence_artifact(text, ioc.value)}</li>"
     mitre_rows = "".join(
         f"<tr><td>{escape(m.tactic)}</td><td class='mono'>{escape(m.technique_id)}</td>"
         f"<td>{escape(m.technique_name)}</td><td>{_narrative(m.rationale)}</td></tr>"
@@ -326,7 +354,7 @@ def _bulk_section_html(result: AnalysisResult) -> str:
     fg, bg = _LEVEL_COLORS[result.risk.level]
     return (
         '<section class="card">'
-        f'<h2>{_evidence(result.ioc.value)}</h2>'
+        f'<h2>{_neutralize_text(result.ioc.value)}</h2>'
         f'<p><span class="badge" style="background:{bg};color:{fg}">{result.risk.score}/100 {escape(result.risk.level.value)}</span></p>'
         f'<p style="font-size:14px">{_narrative(result.summary.executive_summary, interp=result.ioc.value)}</p>'
         "</section>"

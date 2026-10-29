@@ -97,7 +97,10 @@ class TestDomains:
 
     @pytest.mark.parametrize(
         "value",
-        ["-bad.com", "bad-.com", "no_tld", ".leading-dot.com", "toolonglabel" * 5 + ".com", "example.c"],
+        # RFC-1035/1123: labels >63 chars and hostnames >253 chars are invalid.
+        # Fixture uses a 72-char label (spec takes precedence over older
+        # shorter fixtures that were incorrectly rejected).
+        ["-bad.com", "bad-.com", "no_tld", ".leading-dot.com", "a" * 72 + ".com", "example.c"],
     )
     def test_invalid_domains(self, value: str) -> None:
         result = validate_ioc(value)
