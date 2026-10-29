@@ -1,0 +1,78 @@
+{
+  "analysis_id": "eb60f205-e9e6-4909-bd00-a7d192a20770",
+  "generated_at": "2026-10-29T07:11:42+00:00",
+  "tool_version": "1.0.0",
+  "ioc": {
+    "value": "192.168.1.10",
+    "ioc_type": "ipv4",
+    "valid": true,
+    "reason": "",
+    "metadata": {
+      "version": 4,
+      "is_private": true,
+      "is_reserved": false,
+      "is_loopback": false,
+      "is_multicast": false,
+      "is_global": false
+    }
+  },
+  "risk": {
+    "score": 0,
+    "level": "informational",
+    "factors": [],
+    "explanation": "No threat-intelligence signal was found for 192.168.1.10 (ipv4); score defaults to 0 (Informational). Absence of evidence is not evidence of absence - re-check provider coverage."
+  },
+  "enrichments": [
+    {
+      "provider": "virustotal",
+      "status": "skipped",
+      "confidence": 0,
+      "malicious": null,
+      "summary": "192.168.1.10 is a private/reserved address - external lookups skipped to prevent leaking internal infrastructure to third-party providers.",
+      "details": {},
+      "error": null,
+      "raw_ref": null,
+      "retrieved_at": "2026-10-29T07:11:42+00:00"
+    },
+    {
+      "provider": "abuseipdb",
+      "status": "skipped",
+      "confidence": 0,
+      "malicious": null,
+      "summary": "192.168.1.10 is a private/reserved address - external lookups skipped to prevent leaking internal infrastructure to third-party providers.",
+      "details": {},
+      "error": null,
+      "raw_ref": null,
+      "retrieved_at": "2026-10-29T07:11:42+00:00"
+    },
+    {
+      "provider": "greynoise",
+      "status": "skipped",
+      "confidence": 0,
+      "malicious": null,
+      "summary": "192.168.1.10 is a private/reserved address - external lookups skipped to prevent leaking internal infrastructure to third-party providers.",
+      "details": {},
+      "error": null,
+      "raw_ref": null,
+      "retrieved_at": "2026-10-29T07:11:42+00:00"
+    }
+  ],
+  "analyst_summary": {
+    "executive_summary": "The indicator '192.168.1.10' (ipv4) was analysed against 0 threat-intelligence provider(s) and received a risk score of 0/100 (INFORMATIONAL). No significant threat signal was found. Absence of detections does not certify the indicator as benign.",
+    "threat_assessment": "Threat assessment limited: no provider returned usable intelligence for this indicator. Coverage gaps may exist (free-tier limits, newly registered assets, or private-network addresses that public feeds never observe).",
+    "observed_activity": [
+      "No observable activity reported by configured providers."
+    ],
+    "risk_rating": "0/100 - INFORMATIONAL",
+    "mitre_techniques": [],
+    "recommended_actions": [
+      "No blocking action warranted on current evidence.",
+      "Correlate the indicator with SIEM telemetry (proxy, DNS, firewall, EDR) for the past 30 days.",
+      "Record the analysis outcome in the case management system for auditability."
+    ],
+    "containment_recommendations": [
+      "No containment required; retain indicator in watchlist only."
+    ],
+    "escalation_guidance": "Retain for trend analysis; no escalation required unless new evidence emerges."
+  }
+}

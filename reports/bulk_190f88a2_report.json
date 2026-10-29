@@ -1,0 +1,284 @@
+{
+  "report_id": "190f88a2-f980-4ce7-88e1-9edeb384b816",
+  "generated_at": "2026-10-29T07:11:35+00:00",
+  "counts": {
+    "analysed": 2,
+    "invalid": 0
+  },
+  "results": [
+    {
+      "analysis_id": "57eaf1af-61cb-4e42-a298-99da65cbf431",
+      "generated_at": "2026-10-29T07:11:35+00:00",
+      "tool_version": "1.0.0",
+      "ioc": {
+        "value": "203.0.113.66",
+        "ioc_type": "ipv4",
+        "valid": true,
+        "reason": "",
+        "metadata": {
+          "version": 4,
+          "is_private": true,
+          "is_reserved": false,
+          "is_loopback": false,
+          "is_multicast": false,
+          "is_global": false
+        }
+      },
+      "risk": {
+        "score": 100,
+        "level": "critical",
+        "factors": [
+          {
+            "name": "VirusTotal detections",
+            "points": 30,
+            "explanation": "14 engine(s) flagged 203.0.113.66 as malicious (3 additional suspicious)"
+          },
+          {
+            "name": "AbuseIPDB abuse confidence",
+            "points": 25,
+            "explanation": "Confidence 95% across 214 abuse report(s)"
+          },
+          {
+            "name": "Known botnet infrastructure",
+            "points": 20,
+            "explanation": "Provider data associates this indicator with botnet activity"
+          },
+          {
+            "name": "Malware hosting / delivery",
+            "points": 15,
+            "explanation": "Indicator linked to malware hosting, staging or delivery"
+          },
+          {
+            "name": "GreyNoise malicious classification",
+            "points": 20,
+            "explanation": "GreyNoise classifies source as malicious (demo-botnet-scanner)"
+          },
+          {
+            "name": "Multi-provider corroboration",
+            "points": 10,
+            "explanation": "3 independent providers returned malicious verdicts"
+          }
+        ],
+        "explanation": "Final score 100/100 => CRITICAL derived from 6 positive signal(s): 14 engine(s) flagged 203.0.113.66 as malicious (3 additional suspicious) [+30]; Confidence 95% across 214 abuse report(s) [+25]; Provider data associates this indicator with botnet activity [+20]; Indicator linked to malware hosting, staging or delivery [+15]; GreyNoise classifies source as malicious (demo-botnet-scanner) [+20]; 3 independent providers returned malicious verdicts [+10]"
+      },
+      "enrichments": [
+        {
+          "provider": "virustotal",
+          "status": "ok",
+          "confidence": 68,
+          "malicious": true,
+          "summary": "14/72 engines flagged as malicious; 3 suspicious; labels: Trojan.Win32, Generic.Malware.AI, Heuristic",
+          "details": {
+            "analysis_stats": {
+              "malicious": 14,
+              "suspicious": 3,
+              "harmless": 55
+            },
+            "malicious_detectors": [
+              "Trojan.Win32.Generic",
+              "Gen:Variant.Tedy",
+              "Malware.AI"
+            ],
+            "type": "malicious host",
+            "as_owner": "DEMO-NETWORK-64500 (synthetic)",
+            "country": "NL",
+            "threat_cluster": "demo-cobalt-beacon-cluster"
+          },
+          "error": null,
+          "raw_ref": "https://www.virustotal.com/gui/demo",
+          "retrieved_at": "2026-10-29T07:11:35+00:00"
+        },
+        {
+          "provider": "abuseipdb",
+          "status": "ok",
+          "confidence": 95,
+          "malicious": true,
+          "summary": "Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force",
+          "details": {
+            "abuse_confidence_score": 95,
+            "total_reports": 214,
+            "distinct_reports": 41,
+            "report_categories": [
+              "SSH",
+              "Brute Force",
+              "Botnet"
+            ],
+            "severe_categories": [
+              "Botnet"
+            ],
+            "country": "NL",
+            "isp": "Demo Hosting B.V.",
+            "domain": "demo-hosting.example",
+            "last_reported": "2026-10-28T03:11:52Z"
+          },
+          "error": null,
+          "raw_ref": "https://www.abuseipdb.com/check/demo",
+          "retrieved_at": "2026-10-29T07:11:35+00:00"
+        },
+        {
+          "provider": "greynoise",
+          "status": "ok",
+          "confidence": 80,
+          "malicious": true,
+          "summary": "Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit",
+          "details": {
+            "classification": "malicious",
+            "actor": "demo-botnet-scanner",
+            "categories": [
+              "scanner",
+              "exploit"
+            ],
+            "organization": "Demo Hosting B.V.",
+            "country": "Netherlands",
+            "first_seen": "2026-09-14",
+            "last_seen": "2026-10-28",
+            "noise": false
+          },
+          "error": null,
+          "raw_ref": "https://www.greynoise.io/viz/address/demo",
+          "retrieved_at": "2026-10-29T07:11:35+00:00"
+        }
+      ],
+      "analyst_summary": {
+        "executive_summary": "The indicator '203.0.113.66' (ipv4) was analysed against 3 threat-intelligence provider(s) and received a risk score of 100/100 (CRITICAL). Multiple independent sources corroborate malicious activity; treat this as an active threat until disproven and initiate incident-response procedures.",
+        "threat_assessment": "3 provider(s) assess this indicator as malicious: virustotal: 14/72 engines flagged as malicious; 3 suspicious; labels: Trojan.Win32, Generic.Malware.AI, Heuristic; abuseipdb: Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force; greynoise: Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit Aggregated confidence is sufficient to justify proactive blocking while investigation proceeds.",
+        "observed_activity": [
+          "[virustotal] 14/72 engines flagged as malicious; 3 suspicious; labels: Trojan.Win32, Generic.Malware.AI, Heuristic",
+          "[virustotal] Infrastructure context: country=NL, hosting=DEMO-NETWORK-64500 (synthetic)",
+          "[abuseipdb] Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force",
+          "[abuseipdb] Infrastructure context: country=NL, hosting=Demo Hosting B.V.",
+          "[abuseipdb] Observed window: first=unknown, last=2026-10-28T03:11:52Z",
+          "[greynoise] Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit",
+          "[greynoise] Infrastructure context: country=Netherlands, hosting=Demo Hosting B.V.",
+          "[greynoise] Observed window: first=2026-09-14, last=2026-10-28"
+        ],
+        "risk_rating": "100/100 - CRITICAL",
+        "mitre_techniques": [
+          {
+            "tactic": "Command and Control",
+            "technique_id": "T1071",
+            "technique_name": "Application Layer Protocol",
+            "rationale": "abuseipdb evidence matched 'botnet|c2|command[- ]and[- ]control|cobalt\\s?strike|meterpreter|beacon' on: Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force | Botnet | SSH | Brute Force | Botnet"
+          },
+          {
+            "tactic": "Initial Access",
+            "technique_id": "T1190",
+            "technique_name": "Exploit Public-Facing Application",
+            "rationale": "abuseipdb evidence matched 'exploit|vulnerab|payload|shellshock|log4j|rce' on: Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force | Botnet | SSH | Brute Force | Botnet"
+          },
+          {
+            "tactic": "Credential Access",
+            "technique_id": "T1110",
+            "technique_name": "Brute Force",
+            "rationale": "abuseipdb evidence matched 'brute[- ]?force|password spray|credential stuffing|rdp brute' on: Abuse confidence 95% from 214 reports; 41 distinct reporters; categories: Botnet, SSH, Brute Force | Botnet | SSH | Brute Force | Botnet"
+          },
+          {
+            "tactic": "Command and Control",
+            "technique_id": "T1090",
+            "technique_name": "Proxy",
+            "rationale": "greynoise evidence matched 'tor|onion|i2p' on: Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit | scanner | exploit | demo-botnet-scanner | malicious"
+          },
+          {
+            "tactic": "Discovery",
+            "technique_id": "T1595",
+            "technique_name": "Active Scanning",
+            "rationale": "greynoise evidence matched 'scanner|scanning|probe|masscan|zmap' on: Classification: malicious; Actor: demo-botnet-scanner; Categories: scanner, exploit | scanner | exploit | demo-botnet-scanner | malicious"
+          }
+        ],
+        "recommended_actions": [
+          "Block '203.0.113.66' at perimeter firewall/proxy immediately pending review.",
+          "Hunt for related infrastructure (same ASN/hosting pattern) using pivot queries.",
+          "Preserve raw provider responses for evidentiary chain-of-custody.",
+          "Correlate the indicator with SIEM telemetry (proxy, DNS, firewall, EDR) for the past 30 days.",
+          "Record the analysis outcome in the case management system for auditability."
+        ],
+        "containment_recommendations": [
+          "Deny all inbound/outbound traffic involving this host address on affected segments.",
+          "Isolate potentially compromised endpoints that communicated with the indicator.",
+          "Force credential resets for accounts that authenticated from/to this indicator."
+        ],
+        "escalation_guidance": "Escalate to Incident Response lead within 1 hour; notify CISO on-call if production systems have confirmed communication with this indicator."
+      }
+    },
+    {
+      "analysis_id": "8c912df3-3ced-4316-bc9e-a5d76f203eee",
+      "generated_at": "2026-10-29T07:11:35+00:00",
+      "tool_version": "1.0.0",
+      "ioc": {
+        "value": "example.org",
+        "ioc_type": "domain",
+        "valid": true,
+        "reason": "",
+        "metadata": {
+          "tld": "org"
+        }
+      },
+      "risk": {
+        "score": 0,
+        "level": "informational",
+        "factors": [],
+        "explanation": "No threat-intelligence signal was found for example.org (domain); score defaults to 0 (Informational). Absence of evidence is not evidence of absence - re-check provider coverage."
+      },
+      "enrichments": [
+        {
+          "provider": "virustotal",
+          "status": "ok",
+          "confidence": 0,
+          "malicious": false,
+          "summary": "0/72 engines flagged as malicious",
+          "details": {
+            "analysis_stats": {
+              "malicious": 0,
+              "harmless": 72
+            },
+            "reputation": 0
+          },
+          "error": null,
+          "raw_ref": null,
+          "retrieved_at": "2026-10-29T07:11:35+00:00"
+        },
+        {
+          "provider": "abuseipdb",
+          "status": "skipped",
+          "confidence": 0,
+          "malicious": null,
+          "summary": "AbuseIPDB does not support 'domain' indicators",
+          "details": {},
+          "error": null,
+          "raw_ref": null,
+          "retrieved_at": "2026-10-29T07:11:35+00:00"
+        },
+        {
+          "provider": "greynoise",
+          "status": "skipped",
+          "confidence": 0,
+          "malicious": null,
+          "summary": "GreyNoise does not support 'domain' indicators",
+          "details": {},
+          "error": null,
+          "raw_ref": null,
+          "retrieved_at": "2026-10-29T07:11:35+00:00"
+        }
+      ],
+      "analyst_summary": {
+        "executive_summary": "The indicator 'example.org' (domain) was analysed against 1 threat-intelligence provider(s) and received a risk score of 0/100 (INFORMATIONAL). No significant threat signal was found. Absence of detections does not certify the indicator as benign.",
+        "threat_assessment": "Available evidence leans benign: virustotal: 0/72 engines flagged as malicious",
+        "observed_activity": [
+          "[virustotal] 0/72 engines flagged as malicious"
+        ],
+        "risk_rating": "0/100 - INFORMATIONAL",
+        "mitre_techniques": [],
+        "recommended_actions": [
+          "No blocking action warranted on current evidence.",
+          "Correlate the indicator with SIEM telemetry (proxy, DNS, firewall, EDR) for the past 30 days.",
+          "Record the analysis outcome in the case management system for auditability."
+        ],
+        "containment_recommendations": [
+          "No containment required; retain indicator in watchlist only."
+        ],
+        "escalation_guidance": "Retain for trend analysis; no escalation required unless new evidence emerges."
+      }
+    }
+  ],
+  "invalid_inputs": []
+}
