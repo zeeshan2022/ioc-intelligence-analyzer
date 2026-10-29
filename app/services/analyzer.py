@@ -146,9 +146,19 @@ class IOCAnalyzer:
 
     @staticmethod
     def _is_internal(ioc: ValidatedIOC) -> bool:
+        """Privacy gate: only *truly internal* addresses are withheld.
+
+        RFC1918, loopback and link-local ranges must never leave the building.
+        Documentation / TEST-NET ranges (e.g. ``203.0.113.0/24``) are flagged
+        ``is_reserved`` by :mod:`ipaddress` but are standard *public* test
+        blocks that providers happily answer for; short-circuiting them here
+        would make reserved-IP paths return a different provider structure
+        than normal public paths. Analysts can still force local-only runs via
+        ``--offline`` / ``IOC_OFFLINE=true``, which skips every provider.
+        """
         meta = ioc.metadata or {}
         if ioc.ioc_type.value in {"ipv4", "ipv6"}:
-            return bool(meta.get("is_private") or meta.get("is_reserved") or meta.get("is_loopback"))
+            return bool(meta.get("is_private") or meta.get("is_loopback") or meta.get("is_link_local"))
         return False
 
 
@@ -182,13 +192,19 @@ def read_indicator_file(path: Path) -> list[str]:
             return [str(item) for item in data if str(item).strip()]
 
     looks_csv = "," in text.splitlines()[0] if text.splitlines() else False
+    # Header tokens recognised on the first column of BOTH CSV and plain
+    # single-column files. One shared set guarantees a header row is skipped
+    # identically regardless of whether the file "looks like" CSV — otherwise
+    # a header such as ``ioc`` in a one-column file is mistaken for an
+    # indicator and inflates the invalid count reported by --bulk runs.
+    header_tokens = {"ioc", "indicator", "value", "ioc_value", "type,value"}
     if looks_csv:
         reader = csv.reader(io.StringIO(text))
         for row in reader:
             if not row:
                 continue
             cell = row[0].strip()
-            if cell.lower() in {"ioc", "indicator", "value", "ioc_value", "type,value"}:
+            if cell.lower() in header_tokens:
                 continue
             if cell.startswith("#"):
                 continue
@@ -198,6 +214,8 @@ def read_indicator_file(path: Path) -> list[str]:
         for line in text.splitlines():
             line = line.strip()
             if not line or line.startswith("#"):
+                continue
+            if line.lower() in header_tokens:
                 continue
             values.append(line.split(",")[0].strip())
     return values

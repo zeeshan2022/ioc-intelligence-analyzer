@@ -48,10 +48,17 @@ def _neutralize(value: object) -> str:
     Order matters: the leading-character check runs *before* CR/LF flattening
     so cells that begin with a control character (e.g. ``\\r@SUM(1+1)``) are
     still apostrophe-prefixed rather than silently converted to a benign look.
+    The dangerous prefix must therefore remain at index 1 of the returned
+    string, which is why interior newlines are flattened with the empty
+    string replaced *after* quoting logic — and why we flatten line breaks
+    only where they do not displace the apostrophe-prefixed vector.
     """
     text = "" if value is None else str(value)
     if text[:1] in {"=", "+", "-", "@", "\t", "\r"}:
-        text = "'" + text
+        # Prefix first; then flatten any *interior* line breaks while keeping
+        # the apostrophe immediately followed by the original dangerous char.
+        body = text[1:].replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
+        return "'" + text[0] + body
     return text.replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
 
 

@@ -140,6 +140,7 @@ def _ip_metadata(ip: "ipaddress.IPv4Address | ipaddress.IPv6Address") -> dict[st
         "is_private": ip.is_private,
         "is_reserved": ip.is_reserved,
         "is_loopback": ip.is_loopback,
+        "is_link_local": ip.is_link_local,
         "is_multicast": ip.is_multicast,
         "is_global": ip.is_global,
     }
