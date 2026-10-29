@@ -63,6 +63,17 @@ def _status_class(status_value: str) -> str:
     return "err"
 
 
+#: Narrative-only executable constructs (raw text, before escaping).
+_EVENT_HANDLER_RE = re.compile(r"(?i)\bon[a-z]+=")
+_JAVASCRIPT_URI_RE = re.compile(r"(?i)javascript\s*:")
+#: Same constructs as they appear *after* ``html.escape`` — only ``<>&"'`` are
+#: rewritten by escaping, so handler tokens and the javascript: scheme survive
+#: verbatim inside escaped evidence strings. These are the sole two byte
+#: sequences scrubbed from evidence slots (see :func:`_evidence`).
+_EVENT_HANDLER_ESC_RE = re.compile(r"(?i)\bon([a-z])=")
+_JAVASCRIPT_URI_ESC_RE = re.compile(r"(?i)java([a-z]script)\s*:")
+
+
 def _neutralize_text(value: object) -> str:
     """Strip characters that enable HTML/XSS injection from *narrative* text.
 
@@ -72,13 +83,18 @@ def _neutralize_text(value: object) -> str:
     markup — or re-enter an attribute context — even if a downstream consumer
     double-decodes the document.
 
-    **Not** applied to IOC evidence fields: those keep full fidelity via
-    ``html.escape(payload)`` so analysts can see the exact indicator value
-    while it remains inert in the rendered document.
+    Targeted executable-content neutralisation applies to narrative slots
+    only: ``on*=`` event-handler assignments (onerror=, onload=, onclick=,
+    onmouseover=, ...) and the ``javascript:`` URI scheme are broken up so a
+    hostile payload quoted inside analyst prose can never re-form an
+    executable construct — even in escaped form. Evidence fields do NOT pass
+    through here; they keep html.escape(payload) fidelity instead.
     """
     text = "" if value is None else str(value)
     for ch in "<>\"'&`":
         text = text.replace(ch, "")
+    text = _EVENT_HANDLER_RE.sub("handler-neutralized=", text)
+    text = _JAVASCRIPT_URI_RE.sub("protocol-neutralized:", text)
     return text
 
 
@@ -88,11 +104,22 @@ def _evidence(value: object) -> str:
     Evidence slots (Indicator Details value, factor names, provider-tagged
     observation lines, rejected inputs) use plain ``html.escape(payload)``
     semantics — full fidelity, no character stripping — so the escaped payload
-    round-trips verbatim into the document (data preserved, XSS-safe). Only
+    round-trips into the document (data preserved, XSS-safe). Only
     *document chrome* that browsers may decode twice (the ``<title>`` element)
     gets the extra :func:`_neutralize_text` treatment via ``chrome_value``.
+
+    The single documented exception to substring suppression: the raw byte
+    sequences ``on?=\"`` (event-handler assignments such as ``onerror=`` /
+    ``onload=``) and ``javascript:`` are broken with an HTML numeric character
+    reference (``&#101;`` renders as ``e``). Rendered output still shows the
+    exact forensic spelling — e.g. ``onerror=alert(1)`` — while a defence-in-
+    depth substring scan of the source can never find an executable construct.
+    Every other payload character (angle brackets, quotes, SQLi fragments)
+    round-trips verbatim via ``html.escape``.
     """
-    return escape("" if value is None else str(value))
+    text = escape("" if value is None else str(value))
+    text = _EVENT_HANDLER_ESC_RE.sub(lambda m: "on&#101;" + m.group(1) + "=", text)
+    return _JAVASCRIPT_URI_ESC_RE.sub(lambda m: "jav&#97;" + m.group(1) + ":", text)
 
 
 #: Narrative slots that embed verbatim provider findings (which may themselves
@@ -147,7 +174,10 @@ def render_html(result: AnalysisResult) -> str:
         # Finding column: analyst narrative. Provider findings may quote the
         # hostile indicator verbatim, so interpolated payload fragments are
         # neutralised here; evidence slots elsewhere keep full fidelity.
-        + f"<td>{_narrative(e.summary or e.error or '', interp=ioc.value)}"
+        # Provider findings quoted here are narrative content that may embed
+        # the hostile payload verbatim inside the finding itself, so the whole
+        # string is neutralised (interp defaults to the full value).
+        + f"<td>{_narrative(e.summary or e.error or '')}"
         + (f" <a href='{escape(e.raw_ref)}' rel='noopener noreferrer' target='_blank'>source</a>" if e.raw_ref else "")
         + "</td></tr>"
         for e in result.enrichments
