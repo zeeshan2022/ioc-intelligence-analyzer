@@ -54,29 +54,31 @@ _HASH_PATTERNS: dict[IOCType, re.Pattern[str]] = {
     IOCType.SHA256: re.compile(r"^[a-fA-F0-9]{64}$"),
 }
 
-# RFC-1123 compliant hostname: each label <= 63 chars, total <= 253,
-# hyphens disallowed at label edges, TLD alphabetic and >= 2 chars. The
-# per-label cap is enforced by the ``{0,61}`` middle span (1 + 61 + 1 = 63).
+# RFC-1123 shape: labels of alphanumerics/hyphens with no edge hyphens, an
+# alphabetic TLD of >= 2 chars. Length limits are checked explicitly below so
+# the same validation path governs bare domains, URL hosts and bulk input.
 _DOMAIN_RE = re.compile(
-    r"^(?=.{1,253}$)"
-    r"([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+"
-    r"[a-zA-Z]{2,}"
-    r"$"
+    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
 )
 
-#: RFC-1035/1123 limit for the whole hostname carried inside URLs.
+#: RFC-1035/1123 limit for the whole hostname (domains and URL hosts alike).
 _MAX_HOSTNAME_LENGTH = 253
+#: RFC-1035/1123 limit for any single hostname label.
+_MAX_LABEL_LENGTH = 63
 
 
 def _is_valid_hostname(host: str) -> bool:
     """Return ``True`` when *host* is a syntactically valid public hostname.
 
-    Enforces the whole-name (<=253 char) RFC limit in addition to the regex;
-    per-label length is already capped by :data:`_DOMAIN_RE`.
+    Single authoritative check used by domain validation, URL-host validation
+    and (transitively) :func:`validate_many`: RFC-1123 shape plus the explicit
+    per-label (<=63) and whole-name (<=253) length caps from RFC-1035.
     """
     if not 1 <= len(host) <= _MAX_HOSTNAME_LENGTH:
         return False
-    return bool(_DOMAIN_RE.match(host))
+    if not _DOMAIN_RE.match(host):
+        return False
+    return all(len(label) <= _MAX_LABEL_LENGTH for label in host.split("."))
 
 _EMAIL_RE = re.compile(
     r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,63}$"

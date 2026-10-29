@@ -109,19 +109,21 @@ class IOCAnalyzer:
         if self._is_internal(ioc):
             target = extract_network_target(ioc) or ioc.value
             reason = (
-                f"{target} is a private address - lookup withheld to prevent "
-                "leaking internal infrastructure to third-party providers."
+                f"{target} is a private/reserved address - lookup withheld "
+                "to prevent leaking internal infrastructure to third-party providers."
             )
             self._log.info("Privacy gate engaged for %s", target)
             return [
-                EnrichmentResult.skipped(connector.name, reason)
+                connector.normalise_offline(ioc, reason)
                 for connector in self.connectors
             ]
 
         if self.config.offline_mode:
             return [
-                EnrichmentResult.skipped(c.name, "Offline mode enabled (IOC_OFFLINE=true)")
-                for c in self.connectors
+                connector.normalise_offline(
+                    ioc, "Offline mode enabled (IOC_OFFLINE=true)"
+                )
+                for connector in self.connectors
             ]
 
         workers = max(1, min(3, len(self.connectors)))

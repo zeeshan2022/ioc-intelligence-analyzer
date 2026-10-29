@@ -132,6 +132,8 @@ def render_html(result: AnalysisResult) -> str:
     factors_rows = "".join(
         f"<tr><td>{_evidence(f.name)}</td><td style='text-align:right;font-weight:700;"
         f'color={"#b91c1c" if f.points > 0 else "#15803d"}">{f.points:+d}</td>'
+        # Factor explanations are *analyst narrative* (prose that may quote the
+        # indicator); they go through _neutralize_text before escaping.
         f"<td>{_narrative(f.explanation, interp=ioc.value)}</td></tr>"
         for f in result.risk.factors
     ) or "<tr><td colspan='3'>No scoring signals contributed.</td></tr>"
@@ -154,13 +156,13 @@ def render_html(result: AnalysisResult) -> str:
     observed_items = ""
     for line in summary.observed_activity:
         text = "" if line is None else str(line)
-        # Provider-tagged observation lines carry verbatim evidence fragments
-        # (detector names, actor identifiers); those slots are escaped only.
-        # Free-form analyst narrative inside the line is neutralised first.
-        if text.startswith("[") and "]" in text[:24]:
-            observed_items += f"<li>{_evidence(text)}</li>"
-        else:
-            observed_items += f"<li>{_narrative(text)}</li>"
+        # "[provider] ..." observation lines are *provider-tagged narrative*:
+        # they quote provider findings (which may embed the hostile indicator
+        # verbatim), so the payload fragment is neutralised before escaping —
+        # same policy as every other prose slot. Pure evidence slots (the IOC
+        # value itself, rejected inputs) keep html.escape(payload) fidelity via
+        # _evidence().
+        observed_items += f"<li>{_narrative(text, interp=ioc.value)}</li>"
     mitre_rows = "".join(
         f"<tr><td>{escape(m.tactic)}</td><td class='mono'>{escape(m.technique_id)}</td>"
         f"<td>{escape(m.technique_name)}</td><td>{_narrative(m.rationale)}</td></tr>"
@@ -200,7 +202,7 @@ def render_html(result: AnalysisResult) -> str:
 
   <section class="card">
     <h2>Indicator Details</h2>
-    <div class="kv" style="margin-bottom:12px"><b>Indicator of Compromise</b><span class="mono" style="font-size:15px">{escape(safe_value)}</span></div>
+    <div class="kv" style="margin-bottom:12px"><b>Indicator of Compromise</b><span class="mono" style="font-size:15px">{safe_value}</span></div>
     <div class="grid">
       <div class="kv"><b>Type</b>{escape(ioc.ioc_type.value)}</div>
       {meta_rows}
