@@ -55,13 +55,28 @@ _HASH_PATTERNS: dict[IOCType, re.Pattern[str]] = {
 }
 
 # RFC-1123 compliant hostname: each label <= 63 chars, total <= 253,
-# hyphens disallowed at label edges, TLD alphabetic and >= 2 chars.
+# hyphens disallowed at label edges, TLD alphabetic and >= 2 chars. The
+# per-label cap is enforced by the ``{0,61}`` middle span (1 + 61 + 1 = 63).
 _DOMAIN_RE = re.compile(
     r"^(?=.{1,253}$)"
     r"([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+"
     r"[a-zA-Z]{2,}"
     r"(?![a-zA-Z0-9\-]*[a-zA-Z0-9\-]{64})$"
 )
+
+#: RFC-1035/1123 limit for the whole hostname carried inside URLs.
+_MAX_HOSTNAME_LENGTH = 253
+
+
+def _is_valid_hostname(host: str) -> bool:
+    """Return ``True`` when *host* is a syntactically valid public hostname.
+
+    Enforces the whole-name (<=253 char) RFC limit in addition to the regex;
+    per-label length is already capped by :data:`_DOMAIN_RE`.
+    """
+    if not 1 <= len(host) <= _MAX_HOSTNAME_LENGTH:
+        return False
+    return bool(_DOMAIN_RE.match(host))
 
 _EMAIL_RE = re.compile(
     r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,63}$"
@@ -96,6 +111,11 @@ class ValidatedIOC:
 
 
 def _is_ipv4(value: str) -> bool:
+    # ``ipaddress`` accepts leading-zero octets ("0177.0.0.1") and integer
+    # literals ("1234"); both are ambiguous mangled-feed shapes, so the dotted
+    # quad is checked explicitly before parsing.
+    if not re.fullmatch(r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}", value):
+        return False
     try:
         ipaddress.IPv4Address(value)
         return True
@@ -105,6 +125,8 @@ def _is_ipv4(value: str) -> bool:
 
 def _is_ipv6(value: str) -> bool:
     # Reject embedded-zone / bracket forms conservatively before parsing.
+    if "[" in value or "]" in value or "%" in value:
+        return False
     try:
         ipaddress.IPv6Address(value)
         return True
@@ -184,7 +206,7 @@ def validate_ioc(raw_value: str) -> ValidatedIOC:
         if not host:
             return ValidatedIOC(value, IOCType.URL, False, "URL has no host component")
         # Host may itself be an IP literal.
-        host_valid = _DOMAIN_RE.match(host) or _is_ipv4(host) or _is_ipv6(host)
+        host_valid = _is_valid_hostname(host) or _is_ipv4(host) or _is_ipv6(host)
         if not host_valid:
             return ValidatedIOC(value, IOCType.URL, False, "invalid URL host")
         return ValidatedIOC(
@@ -201,7 +223,7 @@ def validate_ioc(raw_value: str) -> ValidatedIOC:
         )
 
     # --- Bare domains ------------------------------------------------------- #
-    if _DOMAIN_RE.match(value.lower()):
+    if _is_valid_hostname(value.lower()):
         # RFC-1035: a hostname must carry at least two labels. A single label
         # ("no_tld", "localhost") is a resolvable name on private networks but
         # never a public IOC, so it is rejected with an explicit reason.
