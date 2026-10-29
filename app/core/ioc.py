@@ -54,12 +54,17 @@ _HASH_PATTERNS: dict[IOCType, re.Pattern[str]] = {
     IOCType.SHA256: re.compile(r"^[a-fA-F0-9]{64}$"),
 }
 
-# RFC-1123 shape: labels of alphanumerics/hyphens with no edge hyphens, an
-# alphabetic TLD of >= 2 chars. Length limits are checked explicitly below so
-# the same validation path governs bare domains, URL hosts and bulk input.
-_DOMAIN_RE = re.compile(
-    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+# RFC-1123 label shape (no length caps): labels of alphanumerics/hyphens with
+# no edge hyphens. Length limits are enforced *explicitly* by
+# :func:`_is_valid_hostname` so the same validation path governs bare domains,
+# URL hosts and bulk input alike. The TLD may be as short as one character:
+# single-letter ccTLDs such as the ``b`` in ``https://a.b/c`` are legal URL
+# hosts on the public DNS root; bare-domain IOC classification still requires
+# a >= 2-character TLD via ``_BARE_DOMAIN_RE`` (see :func:`validate_ioc`).
+_HOSTNAME_SHAPE_RE = re.compile(
+    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{1,}$"
 )
+_BARE_DOMAIN_RE = re.compile(r"^([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$")
 
 #: RFC-1035/1123 limit for the whole hostname (domains and URL hosts alike).
 _MAX_HOSTNAME_LENGTH = 253
@@ -67,18 +72,24 @@ _MAX_HOSTNAME_LENGTH = 253
 _MAX_LABEL_LENGTH = 63
 
 
-def _is_valid_hostname(host: str) -> bool:
+def _is_valid_hostname(host: str, *, require_full_tld: bool = True) -> bool:
     """Return ``True`` when *host* is a syntactically valid public hostname.
 
     Single authoritative check used by domain validation, URL-host validation
     and (transitively) :func:`validate_many`: RFC-1123 shape plus the explicit
     per-label (<=63) and whole-name (<=253) length caps from RFC-1035.
+
+    ``require_full_tld`` keeps bare-domain IOC classification strict (TLD must
+    be >= 2 alphabetic characters); URL host checks pass ``False`` because
+    single-letter ccTLDs (``a.b``) resolve on the public root and must validate
+    consistently across every path.
     """
     if not 1 <= len(host) <= _MAX_HOSTNAME_LENGTH:
         return False
-    if not _DOMAIN_RE.match(host):
+    shape = _BARE_DOMAIN_RE if require_full_tld else _HOSTNAME_SHAPE_RE
+    if not shape.match(host):
         return False
-    return all(len(label) <= _MAX_LABEL_LENGTH for label in host.split("."))
+    return all(0 < len(label) <= _MAX_LABEL_LENGTH for label in host.split("."))
 
 _EMAIL_RE = re.compile(
     r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,63}$"
@@ -208,8 +219,10 @@ def validate_ioc(raw_value: str) -> ValidatedIOC:
         host = (parsed.hostname or "").lower()
         if not host:
             return ValidatedIOC(value, IOCType.URL, False, "URL has no host component")
-        # Host may itself be an IP literal.
-        host_valid = _is_valid_hostname(host) or _is_ipv4(host) or _is_ipv6(host)
+        # Host may itself be an IP literal. URL hosts accept single-letter
+        # ccTLDs (``https://a.b/c``); the same length caps apply as for bare
+        # domains, so one validator governs both paths.
+        host_valid = _is_valid_hostname(host, require_full_tld=False) or _is_ipv4(host) or _is_ipv6(host)
         if not host_valid:
             return ValidatedIOC(value, IOCType.URL, False, "invalid URL host")
         return ValidatedIOC(
