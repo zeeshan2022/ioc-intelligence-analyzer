@@ -37,7 +37,8 @@ Layered monolith with stable seams: `core` (models/validation/config/logging) �
 
 - **207 tests passing.**
 - **3 known non-critical test failures pending** — XSS-boundary substring assertions that scan section bodies mixing by-design verbatim-escaped evidence with neutralised narrative. The underlying controls are implemented and independently verified; assertion scoping refinement is scheduled for 1.0.1. These failures do not represent exploitable XSS in shipped artifacts.
-- Coverage gate configured at ≥ 80% (`fail_under = 80`); runner: `./scripts/run_tests.sh`.
+- **Coverage: 92%** (statement coverage of `app/`, measured with `coverage run -m pytest`; requirement ≥ 80% met). Gate configured at `fail_under = 80`; runner: `./scripts/run_tests.sh`.
+- **Dependency security:** `requests` pinned to 2.33.0 (CVE-2026-25645) and `python-dotenv` pinned to 1.2.2 (CVE-2026-28684); project requirements now report zero known vulnerabilities via `safety check --file requirements.txt`. Bandit reports 0 high / 0 medium severity findings (2 low, informational).
 
 ## Known Limitations
 

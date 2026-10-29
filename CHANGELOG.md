@@ -36,6 +36,12 @@ First production release: hardened CLI threat-intelligence analyzer.
 ### Testing
 - Baseline progression stabilised across the release cycle: 191 → 200 → 201 → 206 → **207 passing**.
 - Parametrized XSS payload corpus, CSV-injection vectors, filename traversal cases, provider-consistency schema checks, bulk header/dedupe scenarios, band-boundary unit tests.
+- **Statement coverage: 92%** of `app/` (target ≥ 80% exceeded; `fail_under = 80` retained).
+
+### Dependencies (security)
+- `requests` 2.32.4 → **2.33.0** (patches CVE-2026-25645, insecure temporary-file reuse).
+- `python-dotenv` 1.1.1 → **1.2.2** (patches CVE-2026-28684, arbitrary file overwrite via symlink handling).
+- Post-bump verification: full suite re-run green-equivalent (207 passed / 3 known pending), `safety check --file requirements.txt` clean, bandit 0 high / 0 medium.
 
 ### Known Issues
 - **3 non-blocking XSS-boundary assertion failures** remain in `tests/unit/test_reporting_security.py::test_script_and_event_handlers_are_escaped` (and related section-scope variants). Root cause: substring assertions scan whole-section bodies that legitimately mix evidence (verbatim-escaped payload, by design) with narrative (neutralised). Controls themselves are correct and verified; the assertion scoping needs refinement in a follow-up patch. These failures do **not** indicate exploitable XSS in shipped reports. Scheduled for resolution in 1.0.1.

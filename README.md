@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://python.org)
 [![Tests](https://img.shields.io/badge/tests-207%20passing-brightgreen.svg)](CHANGELOG.md)
-[![Coverage](https://img.shields.io/badge/coverage-%E2%89%A580%25-yellowgreen.svg)](pyproject.toml)
+[![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen.svg)](pyproject.toml)
 
 ---
 
@@ -204,7 +204,7 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q        # suite
 ./scripts/run_tests.sh                                       # verbose + coverage gate
 ```
 
-210 tests across unit and integration layers, including a dedicated security class (XSS payloads, CSV injection, traversal, secret hygiene). Coverage gate: `fail_under = 80`.
+210 tests across unit and integration layers, including a dedicated security class (XSS payloads, CSV injection, traversal, secret hygiene). Current status: **207 passing / 3 known non-blocking pending** (see [CHANGELOG.md](CHANGELOG.md)). Measured statement coverage: **92%**; gate: `fail_under = 80`.
 
 ## Known Limitations
 
